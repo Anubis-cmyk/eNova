@@ -52,7 +52,7 @@ export default function App() {
   ]);
   useEffect(() => {
     async function getBooks() {
-      const contractAddress = '0x805324ab71EeCDB59f88203d79c7C1e37169783a';
+      const contractAddress = '0xa3f4c07cB198758e2474c2F1372239b2d4F90D13';
 
       const web3 = new Web3('https://goerli.infura.io/v3/376e00cbb0684049bfc81287c741e84e');
       const networkId = await web3.eth.net.getId();
