@@ -13,80 +13,16 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { zoomIn } from './node_modules/react-native-animatable/definitions/zooming-entrances';
 import Background from './node_modules/@react-navigation/elements/lib/typescript/src/Background.d';
 const Stack = createNativeStackNavigator();
-import eNovaBookStore from './abis/abi.json';
+import eNovaBookStore from './ABI/abi.json';
 import Web3 from 'web3';
+import axios from 'axios';
 
-
-// [ {
-//   id: 1,
-//   name: 'Harry Potter and the Deathly Hallows',
-//   author: 'J.K. Rowling',
-//   imageUrl: 'https://m.media-amazon.com/images/W/IMAGERENDERING_521856-T1/images/I/71sH3vxziLL._AC_UF1000,1000_QL80_.jpg',
-//   shortInfo: 'Harry Potter and the Deathly Hallows is a fantasy novel written by British author J. K. Rowling and the seventh and final novel of the Harry Potter series. The book was released on 21 July 2007, ending the series that began in 1997 with the publication of Harry Potter and the Philosopher\'s Stone.',
-//   tags: ['Fantasy', 'Adventure', 'Magic'],
-// },
-// {
-//   id: 2,
-//   name: 'The Lord of the Rings',
-//   author: 'J.R.R. Tolkien',
-//   imageUrl: 'https://m.media-amazon.com/images/W/IMAGERENDERING_521856-T1/images/I/71jLBXtWJWL._AC_UF1000,1000_QL80_.jpg',
-//   shortInfo: 'The Lord of the Rings is an epic high fantasy novel written by English author and scholar J. R. R. Tolkien. The story began as a sequel to Tolkien\'s 1937 fantasy novel The Hobbit, but eventually developed into a much larger work. Written in stages between 1937 and 1949, The Lord of the Rings is one of the best-selling novels ever written, with over 150 million copies sold.',
-//   tags: ['Fantasy', 'Adventure', 'Magic'],
-// },
-// {
-//   id: 3,
-//   name: 'A Teaspoon of Earth and Sea',
-//   author: 'Dina Nayeri',
-//   imageUrl: 'https://images.booksense.com/images/327/632/9781594632327.jpg',
-//   shortInfo: 'From the author of Refuge, a magical novel about a young Iranian woman lifted from grief by her powerful imagination and love of Western culture.',
-//   tags: ['Fiction', 'Cultural Heritage', 'Family Life'],
-// },
-
-// ]
+ 
 export default function App() {
   const [selectedPage, setSelectedPage] = useState('Home'); 
   const [search,setSearch] = useState(false);
-  const [book, setBook] = useState();
-  // useEffect(() => {
-  //   async function getBooks() {
-  //     const contractAddress = '0x0b7fC760E92Eb498f1dCDF1C0856c7c256c360fE';
-
-  //     const web3 = new Web3('https://goerli.infura.io/v3/376e00cbb0684049bfc81287c741e84e');
-  //     const networkId = await web3.eth.net.getId();
-  //     // Create a contract instance for the deployed contract
-  //     const contract = new web3.eth.Contract(eNovaBookStore, contractAddress);
-
-  //     const  getBookCount = async () => {
-  //         const count = await contract.methods.getBookCount().call();
-  //         console.log(count);
-  //     }
-  //     const count = await contract.methods.getBookCount().call();
-  //     const bookPromises = [];
-  //     for (let i = 0; i < count; i++) {
-  //       const singleBook = contract.methods.getBook(i).call();
-        
-  //     const books = await singleBook;
-  //     console.log(books)
-  //       const book = {
-  //         id: i,
-  //         name: books[0],
-  //         author: books[1],
-  //         shortInfo: books[2],
-  //         imageUrl: books[3],
-  //         tags:['Fiction', 'Cultural Heritage', 'Family Life']
-  //       }
-  //       bookPromises.push(book);
-  //     }
-  //     let item;
-  //     const bookData = await Promise.all(bookPromises);
-  //     for (let i = 0; i < count; i++) {
-  //       item = bookData[i];
-  //     }
-  //     setBook(bookData)
-      
-  //   }  
-  //   getBooks();
-  // }, [book]);
+  const [book, setBook] = useState([]);
+  const bookList = [];
 
   useEffect(() => {
     async function getBooks() {
@@ -98,14 +34,53 @@ export default function App() {
       const contract = new web3.eth.Contract(eNovaBookStore, contractAddress);
       contract.methods.getAllBooks().call().then((result) => {
         console.log(result);
-        setBook(result);
+        result.map((item) => {
+          const newBook = {
+            id: item.id,
+            name: item.name,
+            author: item.author,
+            description: item.description,
+            imageUrl: item.imageUrl,
+          }
+          bookList.push(newBook);
+        })
+        console.log(bookList);
+        setBook(...book,bookList);
       }).catch((error) => {
         console.log(error);
       });
-      
     }  
     getBooks();
-  }, [book]);
+  }, []);
+
+  
+  useEffect(() => {
+    async function getBooks() {
+      axios.get('https://enova-web2.onrender.com/book/getBooks')
+      .then((response) => { 
+        console.log(response.data); 
+        response.data.map((item) => {
+          const newBook = {
+            id: item.id,
+            name: item.bookName,
+            author: item.bookAuthor,
+            description: item.bookDescription,
+            imageUrl: item.bookImage,
+          }
+          bookList.push(newBook);
+        })
+        console.log(bookList);
+        setBook(bookList);
+        console.log(book);
+        setBook(...book,bookList);
+      }) 
+      .catch((error) => {
+        console.log(error);
+      });
+    }
+    
+    getBooks();
+  }, [ ]);
 
 
   const renderItem = ({ item }) => (
@@ -602,7 +577,7 @@ const styles = StyleSheet.create({
   topSection:{
     zIndex:4,
     width:'100%',
-    height:200,
+    height:250,
     flexDirection:'row',
     backgroundColor: '#A0E7E5',
     alignItems: 'flex-start',
@@ -614,7 +589,7 @@ const styles = StyleSheet.create({
   },
   recentReadWrap:{
     width:'40%',
-    height:190,
+    height:230,
     position:'relative',
     flex:1, 
     alignItems: 'flex-start',
@@ -633,6 +608,7 @@ const styles = StyleSheet.create({
     zIndex:2,
     position:'absolute',
     top:0,
+    marginBottom:3,
     left:10,
     fontWeight: 'bold',
     color:'#000000',
@@ -649,7 +625,7 @@ const styles = StyleSheet.create({
     textAlign:'center',
   },
   recentReadItem:{
-    top:10,
+    top:15,
     width:'100%',
     height:'100%',
     backgroundColor: '#ffffff',
@@ -766,7 +742,7 @@ const styles = StyleSheet.create({
   },
   shop:{
     width:'100%',
-    height:120,
+    height:170,
     backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -783,8 +759,8 @@ const styles = StyleSheet.create({
     width:'60%',
     position:'absolute',
     left:'15%',
-    top:'8%',
-    height:'50%',
+    top:'7%',
+    height:'30%',
     backgroundColor: '#B4F8C8',
     alignItems: 'center',
     justifyContent: 'center',
@@ -798,9 +774,9 @@ const styles = StyleSheet.create({
   shopOldItems:{
     width:'60%',
     position:'absolute',
-    bottom:'8%',
+    bottom:'7%',
     right:'15%',
-    height:'50%',
+    height:'30%',
     backgroundColor: '#FFAEBC',
     alignItems: 'center',
     justifyContent: 'center',
